@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>行业对标发布管控系统</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">行业对标发布管控系统 <span class="badge">冻结批次 · k=5 匿名</span></div>
+    <div id="session-box">
+      <span id="session-info" class="muted"></span>
+      <button id="nav-login" class="btn">登录</button>
+      <button id="nav-logout" class="btn btn-ghost hidden">登出</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="public">公开对标数字</button>
+    <button class="tab" data-tab="apply">申请发布</button>
+    <button class="tab" data-tab="mine">我的申请</button>
+    <button class="tab" data-tab="roster">部件名单（机务）</button>
+    <button class="tab maintainer-only hidden" data-tab="audit">审计轨迹</button>
+  </nav>
+
+  <main class="container">
+    <!-- 公开页 -->
+    <section id="tab-public" class="tab-panel active">
+      <h2>公开对标数字</h2>
+      <p class="muted">仅公开每份在架发布的样本数与失效数；部件名单不公开。撤下发布只保留编码公示，历史数字不再展示，但其入选记录仍参与匿名核对。</p>
+      <table class="grid">
+        <thead><tr><th>发布编码</th><th>样本数</th><th>失效数</th><th>发布时间</th></tr></thead>
+        <tbody id="public-rows"><tr><td colspan="4" class="muted">加载中…</td></tr></tbody>
+      </table>
+      <h3>已撤下发布（编码公示）</h3>
+      <ul id="withdrawn-rows" class="plain"></ul>
+    </section>
+
+    <!-- 申请 -->
+    <section id="tab-apply" class="tab-panel">
+      <h2>提交对标发布申请</h2>
+      <p class="muted">全部选件须来自同一冻结批次。系统按每件在历次发布（含已撤下）与本次申请中的入选组合分组，除从未入选组外，任一组不足 5 件将整单拒发。</p>
+      <form id="apply-form" class="card">
+        <label>申请标题 <input name="title" required maxlength="200" placeholder="例：2026Q4 压缩机对标发布" /></label>
+        <label>幂等键（同键重试不重复发布）
+          <input name="idempotency_key" required maxlength="80" />
+        </label>
+        <div class="row">
+          <button type="button" id="fill-serial" class="btn btn-ghost">按资产号添加选件行</button>
+          <button type="button" id="add-row" class="btn btn-ghost">+ 空行</button>
+        </div>
+        <table class="grid">
+          <thead><tr><th>部件 ID</th><th>失效标记 (0/1)</th><th></th></tr></thead>
+          <tbody id="item-rows"></tbody>
+        </table>
+        <button class="btn btn-primary" type="submit">提交申请</button>
+        <pre id="apply-result" class="result hidden"></pre>
+      </form>
+    </section>
+
+    <!-- 我的申请 -->
+    <section id="tab-mine" class="tab-panel">
+      <h2>我的申请</h2>
+      <div class="row"><button id="refresh-mine" class="btn btn-ghost">刷新</button><span id="mine-hint" class="muted"></span></div>
+      <table class="grid">
+        <thead><tr><th>#</th><th>标题</th><th>状态</th><th>发布编码</th><th>提交时间</th><th>操作</th></tr></thead>
+        <tbody id="mine-rows"><tr><td colspan="6" class="muted">登录后加载</td></tr></tbody>
+      </table>
+      <div id="detail-box" class="card hidden"></div>
+    </section>
+
+    <!-- 部件名单 -->
+    <section id="tab-roster" class="tab-panel">
+      <h2>冻结批次部件名单 <span class="badge">仅机务核验</span></h2>
+      <p class="muted">服务端强校验角色并写入审计；非机务账号调用接口同样被拒。</p>
+      <table class="grid">
+        <thead><tr><th>部件 ID</th><th>资产号</th><th>型号</th></tr></thead>
+        <tbody id="roster-rows"><tr><td colspan="3" class="muted">点击刷新加载</td></tr></tbody>
+      </table>
+      <button id="load-roster" class="btn">加载名单</button>
+    </section>
+
+    <!-- 审计 -->
+    <section id="tab-audit" class="tab-panel maintainer-only hidden">
+      <h2>审计轨迹</h2>
+      <table class="grid">
+        <thead><tr><th>时间</th><th>动作</th><th>详情</th></tr></thead>
+        <tbody id="audit-rows"></tbody>
+      </table>
+      <button id="load-audit" class="btn">加载审计</button>
+    </section>
+  </main>
+
+  <!-- 登录弹窗 -->
+  <dialog id="login-dialog">
+    <form method="dialog" class="card" id="login-form">
+      <h3>登录</h3>
+      <label>用户名 <input name="username" required autocomplete="username" /></label>
+      <label>口令 <input name="password" type="password" required autocomplete="current-password" /></label>
+      <div class="row">
+        <button value="cancel" class="btn btn-ghost">取消</button>
+        <button id="login-submit" value="default" class="btn btn-primary">登录</button>
+      </div>
+      <p class="muted small">演示账号：maintainer / Mech123!（机务），applicant / Apply123!（申请单位）</p>
+      <pre id="login-error" class="result error hidden"></pre>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>
